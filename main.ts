@@ -1,4 +1,4 @@
-import { Editor, Plugin } from 'obsidian';
+import { Editor, EditorSelection, Plugin } from 'obsidian';
 
 export default class TextHighlighterPlugin extends Plugin {
   onload() {
@@ -7,10 +7,6 @@ export default class TextHighlighterPlugin extends Plugin {
       name: 'Highlight Text',
       editorCallback: (editor) => {
         const selectedText = editor.getSelection();
-
-        if (!selectedText) {
-          return;
-        }
         
         const isAlreadyHighlighted = selectedText.startsWith('<span style="background-color: yellow">') && selectedText.endsWith("</span>")
         let highlightedText;
@@ -31,10 +27,6 @@ export default class TextHighlighterPlugin extends Plugin {
       editorCallback: (editor) => {
         const selectedText = editor.getSelection();
 
-        if (!selectedText) {
-          return;
-        }
-
         const isAlreadyUnderlined = selectedText.startsWith("<u>") && selectedText.endsWith("</u>")
         let underlinedText
 
@@ -54,10 +46,6 @@ export default class TextHighlighterPlugin extends Plugin {
       editorCallback: (editor) => {
         const selectedText = editor.getSelection();
 
-        if (!selectedText) {
-          return;
-        }
-
         const isAlreadyBolded = selectedText.startsWith("<b>") && selectedText.endsWith("</b>");
         let boldedText;
 
@@ -68,19 +56,55 @@ export default class TextHighlighterPlugin extends Plugin {
         }
         replaceAndSelect(editor, boldedText)
       }
-    })
+    });
+
+    this.addCommand({
+      id: 'italic-text',
+      name: 'Italic Text',
+      editorCallback: (editor) => {
+        const selectedText = editor.getSelection();
+
+        const isAlreadyItalic = selectedText.startsWith("<i>") && selectedText.endsWith("</i>");
+        let boldedText;
+
+        if (isAlreadyItalic) {
+          boldedText = selectedText.replace("<i>", "").replace("</i>", "")
+        } else {
+          boldedText = `<i>${selectedText}</i>`;
+        }
+        replaceAndSelect(editor, boldedText)
+      }
+    });
   }
 }
 
 function replaceAndSelect(editor: Editor, newText: string) {
-  const selections = editor.listSelections();
-  const currentSelection = selections[0];
-  const newHeadChar = currentSelection.anchor.ch + newText.length;
-  const newSelection = {
-    anchor: currentSelection.anchor,
-    head: { line: currentSelection.anchor.line, ch: newHeadChar }
-  };
-  
+  const currentSelection = editor.listSelections()[0];
+  const isBackwardsDirection = isSelectionBackwards(currentSelection);
+
   editor.replaceSelection(newText);
-  editor.setSelection(newSelection.anchor, newSelection.head);
+
+  let newAnchor, newHead;
+  if (isBackwardsDirection) {
+    newAnchor = { line: currentSelection.head.line, ch: currentSelection.head.ch + newText.length };
+    newHead = currentSelection.head;
+  } else {
+    console.log(1)
+    newAnchor = currentSelection.anchor;
+    newHead = { line: currentSelection.anchor.line, ch: currentSelection.anchor.ch + newText.length };
+  }
+
+  editor.setSelection(newAnchor, newHead);
+}
+
+function isSelectionBackwards(selection: EditorSelection): boolean {
+  if (selection.anchor.line > selection.head.line) {
+    return true;
+  }
+
+  if (selection.anchor.line === selection.head.line) {
+    return selection.anchor.ch > selection.head.ch;
+  }
+
+  return false;
 }
