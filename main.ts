@@ -1,4 +1,4 @@
-import { Editor, EditorSelection, Plugin } from 'obsidian';
+import { App, Editor, EditorSelection, Plugin, Modal } from 'obsidian';
 
 export default class TextHighlighterPlugin extends Plugin {
   onload() {
@@ -75,6 +75,60 @@ export default class TextHighlighterPlugin extends Plugin {
         replaceAndSelect(editor, boldedText)
       }
     });
+
+    this.addCommand({
+      id: 'wrap-text',
+      name: 'Wrapping Text',
+      editorCallback: (editor: Editor) => {
+        new TagPromptModal(this.app, (tagName: string) => {
+          if (tagName) {
+            const selectedText = editor.getSelection();
+            const wrappedText = `<${tagName}>${selectedText}</${tagName}>`;
+            replaceAndSelect(editor, wrappedText);
+          }
+        }).open();
+      }
+    });
+  }
+}
+
+class TagPromptModal extends Modal {
+  onChooseTag: (tagName: string) => void;
+
+  constructor(app: App, onChooseTag: (tagName: string) => void) {
+    super(app);
+    this.onChooseTag = onChooseTag;
+  }
+
+  onOpen() {
+
+    this.contentEl.createEl('h3', { text: 'Enter Tag Name' });
+
+    const input = this.contentEl.createEl('input', {
+      type: 'text',
+      attr: {
+        placeholder: 'Type tag name here and press Enter'
+      }
+    });
+
+    input.setCssStyles({
+      width: '100%',
+      fontSize: '1em'
+    });
+
+    input.addEventListener('keypress', (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.onChooseTag(input.value);
+        this.close();
+      }
+    });
+
+    input.focus();
+  }
+
+  onClose() {
+    this.contentEl.empty();
   }
 }
 
