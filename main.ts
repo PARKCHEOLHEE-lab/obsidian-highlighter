@@ -171,7 +171,6 @@ function replaceAndSelect(editor: Editor, newText: string, selectedText: string)
 
   }
 
-
   editor.setSelection(newAnchor, newHead);
 }
 
