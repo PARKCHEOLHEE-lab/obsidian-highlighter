@@ -17,7 +17,7 @@ export default class TextHighlighterPlugin extends Plugin {
           highlightedText = `<span style="background-color: yellow">${selectedText}</span>`;
         }
 
-        replaceAndSelect(editor, highlightedText)
+        replaceAndSelect(editor, highlightedText, selectedText)
       }
     });
 
@@ -36,7 +36,7 @@ export default class TextHighlighterPlugin extends Plugin {
           underlinedText = `<u>${selectedText}</u>`;
         }
 
-        replaceAndSelect(editor, underlinedText)
+        replaceAndSelect(editor, underlinedText, selectedText)
       }
     });
 
@@ -54,7 +54,7 @@ export default class TextHighlighterPlugin extends Plugin {
         } else {
           boldedText = `<b>${selectedText}</b>`;
         }
-        replaceAndSelect(editor, boldedText)
+        replaceAndSelect(editor, boldedText, selectedText)
       }
     });
 
@@ -65,14 +65,14 @@ export default class TextHighlighterPlugin extends Plugin {
         const selectedText = editor.getSelection();
 
         const isAlreadyItalic = selectedText.startsWith("<i>") && selectedText.endsWith("</i>");
-        let boldedText;
+        let italicText;
 
         if (isAlreadyItalic) {
-          boldedText = selectedText.replace("<i>", "").replace("</i>", "")
+          italicText = selectedText.replace("<i>", "").replace("</i>", "")
         } else {
-          boldedText = `<i>${selectedText}</i>`;
+          italicText = `<i>${selectedText}</i>`;
         }
-        replaceAndSelect(editor, boldedText)
+        replaceAndSelect(editor, italicText, selectedText)
       }
     });
 
@@ -84,7 +84,7 @@ export default class TextHighlighterPlugin extends Plugin {
           if (tagName) {
             const selectedText = editor.getSelection();
             const wrappedText = `<${tagName}>${selectedText}</${tagName}>`;
-            replaceAndSelect(editor, wrappedText);
+            replaceAndSelect(editor, wrappedText, selectedText);
           }
         }).open();
       }
@@ -132,21 +132,45 @@ class TagPromptModal extends Modal {
   }
 }
 
-function replaceAndSelect(editor: Editor, newText: string) {
+function replaceAndSelect(editor: Editor, newText: string, selectedText: string) {
   const currentSelection = editor.listSelections()[0];
   const isBackwardsDirection = isSelectionBackwards(currentSelection);
 
   editor.replaceSelection(newText);
 
   let newAnchor, newHead;
-  if (isBackwardsDirection) {
-    newAnchor = { line: currentSelection.head.line, ch: currentSelection.head.ch + newText.length };
-    newHead = currentSelection.head;
-  } else {
-    console.log(1)
-    newAnchor = currentSelection.anchor;
-    newHead = { line: currentSelection.anchor.line, ch: currentSelection.anchor.ch + newText.length };
+  
+  if (selectedText.length === 0) {
+
+    let openingTagLength = 1
+    for (let i = 0; i < newText.length; i++) {
+      if (newText[i] === ">") {
+        break;
+      }
+      openingTagLength += 1;
   }
+
+    const middlePosition = {
+      line: currentSelection.anchor.line,
+      ch: currentSelection.anchor.ch + openingTagLength
+    };
+
+    newAnchor = middlePosition;
+    newHead = middlePosition;
+
+  } else {
+
+    if (isBackwardsDirection) {
+      newAnchor = { line: currentSelection.head.line, ch: currentSelection.head.ch + newText.length };
+      newHead = currentSelection.head;
+    } else {
+      console.log(1)
+      newAnchor = currentSelection.anchor;
+      newHead = { line: currentSelection.anchor.line, ch: currentSelection.anchor.ch + newText.length };
+    }
+
+  }
+
 
   editor.setSelection(newAnchor, newHead);
 }
