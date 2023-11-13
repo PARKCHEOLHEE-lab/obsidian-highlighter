@@ -109,8 +109,17 @@ export default class TextHighlighterPlugin extends Plugin {
         for (let i = 0; i < count; i++) {
           checkboxes += "- [ ] \n"
         }
-        
-        replaceAndSelect(editor, checkboxes, selectedText);
+
+        const cursorPosition = editor.getCursor();
+
+        editor.replaceSelection(checkboxes);
+
+        const firstCheckboxPosition = {
+          line: cursorPosition.line,
+          ch: 6
+        };
+
+        editor.setCursor(firstCheckboxPosition);
       }
     });
   }
