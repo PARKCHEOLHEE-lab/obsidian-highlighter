@@ -89,6 +89,30 @@ export default class TextHighlighterPlugin extends Plugin {
         }).open();
       }
     });
+
+    this.addCommand({
+      id: 'generate-checkboxes',
+      name: 'Generate Checkboxes',
+      editorCallback: (editor) => {
+        const selectedText = editor.getSelection();
+        
+        let count;
+        const defaultcount = 4;
+        
+        if (selectedText.length == 0) {
+          count = defaultcount;
+        } else {
+          count = parseInt(selectedText)
+        }
+
+        let checkboxes = "";
+        for (let i = 0; i < count; i++) {
+          checkboxes += "- [ ] \n"
+        }
+        
+        replaceAndSelect(editor, checkboxes, selectedText);
+      }
+    });
   }
 }
 
