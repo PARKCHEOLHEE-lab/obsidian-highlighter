@@ -213,7 +213,6 @@ function replaceAndSelect(editor: Editor, newText: string, selectedText: string)
       newAnchor = { line: currentSelection.head.line, ch: currentSelection.head.ch + newText.length };
       newHead = currentSelection.head;
     } else {
-      console.log(1)
       newAnchor = currentSelection.anchor;
       newHead = { line: currentSelection.anchor.line, ch: currentSelection.anchor.ch + newText.length };
     }
