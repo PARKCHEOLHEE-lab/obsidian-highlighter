@@ -122,6 +122,22 @@ export default class TextHighlighterPlugin extends Plugin {
         editor.setCursor(firstCheckboxPosition);
       }
     });
+
+    this.addCommand({
+      id: 'generate-tr',
+      name: 'Generate tr',
+      editorCallback: (editor) => {
+
+        const tr = `<tr> 
+          <td style="border-left: none;"></td> 
+          <td></td> 
+          <td style="border-right: none;"></td> 
+        </tr>
+        `
+
+        editor.replaceSelection(tr);
+      }
+    });
   }
 }
 
